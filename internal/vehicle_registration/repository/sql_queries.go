@@ -66,9 +66,13 @@ const (
 	`
 
 	getLicenseQuery = `
-	SELECT *
-	FROM vehicle_registration
-	WHERE id = $1 AND active = true
+	SELECT
+		vr.*,
+		COALESCE(u.user_address, dl.wallet_address) AS user_address
+	FROM vehicle_registration vr
+	LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
+	LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
+	WHERE vr.id = $1 AND vr.active = true
 	`
 
 	getTotalCount = `
@@ -117,9 +121,11 @@ const (
         vr.updated_at, 
         vr.created_at,
         vr.on_blockchain,
-        vr.blockchain_txhash
+        vr.blockchain_txhash,
+		COALESCE(u.user_address, dl.wallet_address) AS user_address
     FROM vehicle_registration vr
     LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
+	LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
     WHERE vr.active = true
     ORDER BY vr.updated_at DESC, vr.created_at DESC
     OFFSET $1 LIMIT $2
@@ -197,6 +203,7 @@ const (
         vr.created_at,
         vr.on_blockchain,
         vr.blockchain_txhash,
+		COALESCE(u.user_address, dl.wallet_address) AS user_address,
         vr.active
     FROM vehicle_registration vr
     INNER JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
@@ -216,9 +223,13 @@ const (
     `
 
 	getVehicleByIDAndOwner = `
-        SELECT *
-        FROM vehicle_registration
-        WHERE id = $1 AND owner_id = $2 AND active = true
+        SELECT 
+			vr.*,
+			COALESCE(u.user_address, dl.wallet_address) AS user_address
+        FROM vehicle_registration vr
+		LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
+		LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
+        WHERE vr.id = $1 AND vr.owner_id = $2 AND vr.active = true
     `
 
 	getInspections = `
@@ -247,9 +258,11 @@ const (
         vr.updated_at, 
         vr.created_at,
         vr.on_blockchain,
-        vr.blockchain_txhash
+        vr.blockchain_txhash,
+		COALESCE(u.user_address, dl.wallet_address) AS user_address
     FROM vehicle_registration vr
     LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
+	LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
     WHERE vr.registration_code IS NOT NULL AND vr.active = true
     ORDER BY vr.updated_at DESC, vr.created_at DESC
     OFFSET $1 LIMIT $2
@@ -287,9 +300,11 @@ const (
         vr.updated_at, 
         vr.created_at,
         vr.on_blockchain,
-        vr.blockchain_txhash
+        vr.blockchain_txhash,
+		COALESCE(u.user_address, dl.wallet_address) AS user_address
     FROM vehicle_registration vr
     LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
+	LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
     WHERE vr.registration_code = $1 AND vr.active = true
     `
 )
