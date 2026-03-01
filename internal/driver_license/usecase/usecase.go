@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/adohong4/driving-license/config"
@@ -94,6 +95,9 @@ func (u *DriverLicenseUC) ConfirmBlockchainStorage(ctx context.Context, dl *mode
 
 	if dl.BlockchainTxHash == "" {
 		return nil, httpErrors.NewBadRequestError(errors.New("BlockchainTxHash is required"))
+	}
+	if !strings.HasPrefix(dl.BlockchainTxHash, "0x") || len(dl.BlockchainTxHash) != 66 {
+		return nil, httpErrors.NewBadRequestError(errors.New("BlockchainTxHash is invalid"))
 	}
 
 	updatedLicense, err := u.DriverLicenseRepo.ConfirmBlockchainStorage(ctx, dl)
