@@ -40,6 +40,16 @@ func (d *DrivingLicense) PrepareCreate() error {
 	d.IdentityNo = strings.TrimSpace(d.IdentityNo)
 	d.LicenseNo = strings.TrimSpace(d.LicenseNo)
 	d.LicenseType = strings.TrimSpace(d.LicenseType)
+	d.DOB = strings.TrimSpace(d.DOB)
+	d.IssueDate = strings.TrimSpace(d.IssueDate)
+	if d.ExpiryDate != nil {
+		expiry := strings.TrimSpace(*d.ExpiryDate)
+		if expiry == "" {
+			d.ExpiryDate = nil
+		} else {
+			d.ExpiryDate = &expiry
+		}
+	}
 
 	d.Id = uuid.New()
 	d.Point = 12
@@ -58,6 +68,16 @@ func (d *DrivingLicense) PrepareUpdate() error {
 	d.IdentityNo = strings.TrimSpace(d.IdentityNo)
 	d.LicenseNo = strings.TrimSpace(d.LicenseNo)
 	d.LicenseType = strings.TrimSpace(d.LicenseType)
+	d.DOB = strings.TrimSpace(d.DOB)
+	d.IssueDate = strings.TrimSpace(d.IssueDate)
+	if d.ExpiryDate != nil {
+		expiry := strings.TrimSpace(*d.ExpiryDate)
+		if expiry == "" {
+			d.ExpiryDate = nil
+		} else {
+			d.ExpiryDate = &expiry
+		}
+	}
 
 	d.UpdatedAt = time.Now()
 	return nil

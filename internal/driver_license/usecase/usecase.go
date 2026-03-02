@@ -39,6 +39,23 @@ func (u *DriverLicenseUC) CreateDriverLicense(ctx context.Context, dl *models.Dr
 	if err = dl.PrepareCreate(); err != nil {
 		return nil, httpErrors.NewBadRequestError(errors.Wrap(err, "DriverLicenseUC.CreateDriverLicense.PrepareCreate"))
 	}
+	if dl.DOB == "" {
+		return nil, httpErrors.NewBadRequestError(errors.New("dob is required"))
+	}
+	if _, err := time.Parse("2006-01-02", dl.DOB); err != nil {
+		return nil, httpErrors.NewBadRequestError(errors.New("dob must be in YYYY-MM-DD format"))
+	}
+	if dl.IssueDate == "" {
+		return nil, httpErrors.NewBadRequestError(errors.New("issue_date is required"))
+	}
+	if _, err := time.Parse("2006-01-02", dl.IssueDate); err != nil {
+		return nil, httpErrors.NewBadRequestError(errors.New("issue_date must be in YYYY-MM-DD format"))
+	}
+	if dl.ExpiryDate != nil && *dl.ExpiryDate != "" {
+		if _, err := time.Parse("2006-01-02", *dl.ExpiryDate); err != nil {
+			return nil, httpErrors.NewBadRequestError(errors.New("expiry_date must be in YYYY-MM-DD format"))
+		}
+	}
 
 	user, err := utils.GetUserFromCtx(ctx)
 	if err != nil {
