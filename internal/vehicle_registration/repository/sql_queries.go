@@ -143,6 +143,7 @@ const (
     FROM vehicle_registration
     WHERE active = true
     GROUP BY type_vehicle
+    ORDER BY count DESC
     `
 
 	getRegistrationStatusStats = `

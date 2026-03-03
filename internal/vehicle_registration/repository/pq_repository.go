@@ -184,32 +184,21 @@ func (r *vehicleDocRepo) GetCountByType(ctx context.Context) ([]*models.CountIte
 	}
 	defer rows.Close()
 
-	// Map specific types, others to "xe khác"
-	typeMap := make(map[string]int)
 	for rows.Next() {
 		var typeVehicle string
 		var count int
 		if err := rows.Scan(&typeVehicle, &count); err != nil {
 			return nil, errors.Wrap(err, "vehicleDocRepo.GetCountByType.Scan")
 		}
-		typeMap[typeVehicle] = count
+		items = append(items, &models.CountItem{
+			Key:   typeVehicle,
+			Count: count,
+		})
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "vehicleDocRepo.GetCountByType.rows.Err")
 	}
-
-	// Aggregate
-	specificTypes := []string{"xe đầu kéo", "ô tô tải", "ô tô con", "xe khách", "xe máy"}
-	var others int
-	for _, t := range specificTypes {
-		items = append(items, &models.CountItem{Key: t, Count: typeMap[t]})
-		delete(typeMap, t) // Remove from map to calculate others
-	}
-	for _, count := range typeMap {
-		others += count
-	}
-	items = append(items, &models.CountItem{Key: "xe khác", Count: others})
 
 	return items, nil
 }
