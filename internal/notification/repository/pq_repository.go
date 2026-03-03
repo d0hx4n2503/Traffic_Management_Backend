@@ -34,7 +34,7 @@ func (r *notificationRepo) CreateNotification(ctx context.Context, db *models.No
 func (r *notificationRepo) UpdateNotification(ctx context.Context, db *models.Notification) (*models.Notification, error) {
 	n := &models.Notification{}
 	if err := r.db.QueryRowxContext(ctx, updateNotificationQuery,
-		db.Code, db.Title, db.Content, db.Type, db.Target, db.TargetUser, db.Status, db.ModifierID, db.UpdatedAt, db.Active, db.Id,
+		db.Code, db.Title, db.Content, db.Type, db.Target, db.TargetUser, db.Status, db.ModifierID, db.UpdatedAt, db.Id,
 	).StructScan(n); err != nil {
 		return nil, errors.Wrap(err, "NotificationRepo.UpdateNotification.StructScan")
 	}

@@ -11,9 +11,9 @@ const (
 	`
 
 	updateNotificationQuery = `
-		UPADATE notifications
+		UPDATE notifications
 		SET 
-			code COALESCE(NULLIF($1, ''), code),
+			code = COALESCE(NULLIF($1, ''), code),
 			title = COALESCE(NULLIF($2, ''), title),
 			content = COALESCE(NULLIF($3, ''), content),
 			type = COALESCE(NULLIF($4, ''), type),
@@ -23,7 +23,7 @@ const (
 			modifier_id = COALESCE($8, modifier_id),
 			version = version + 1,
 			updated_at = $9
-		WHERE id = $10
+		WHERE id = $10 AND active = true
 		RETURNING id, code, title, content, type, target, target_user, status, creator_id, created_at, updated_at, active
 	`
 
@@ -34,7 +34,7 @@ const (
 		version = version + 1,
 		modifier_id = $1,
 		updated_at = $2
-	WHERE id = $1 
+	WHERE id = $3 AND active = true
 	RETURNING id, code, title, content, type, target, target_user, status, creator_id, created_at, updated_at, active
 	`
 
@@ -54,7 +54,8 @@ const (
 	SELECT id, code, title, content, type, target, target_user, status, creator_id, created_at, updated_at, active
 	FROM notifications
 	WHERE active = true AND title ILIKE '%' || $1 || '%'
-	ORDER BY created_at DESC`
+	ORDER BY created_at DESC
+	OFFSET $2 LIMIT $3`
 
 	findByTitleCount = `
 	SELECT COUNT(*)
@@ -72,7 +73,7 @@ const (
 	SELECT id, code, title, content, type, target, target_user, status, creator_id, created_at, updated_at, active
 	FROM notifications
 	WHERE active = true
-	ORDER BY updated_at, created_at OFFSET $1 LIMIT $2
+	ORDER BY updated_at DESC, created_at DESC OFFSET $1 LIMIT $2
 	`
 
 	getNotificationsForUser = `

@@ -28,8 +28,12 @@ func (n *Notification) PrepareCreate() error {
 	n.Title = strings.TrimSpace(n.Title)
 	n.Content = strings.TrimSpace(n.Content)
 	n.Target = strings.TrimSpace(n.Target)
+	n.Code = strings.TrimSpace(n.Code)
 
 	n.Id = uuid.New()
+	if n.Code == "" {
+		n.Code = "NOTI-" + strings.ToUpper(uuid.NewString()[:8])
+	}
 	n.CreatedAt = time.Now()
 	n.UpdatedAt = time.Now()
 	n.Active = true

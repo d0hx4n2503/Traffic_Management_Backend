@@ -31,8 +31,12 @@ type News struct {
 func (n *News) PrepareCreate() error {
 	n.Title = strings.TrimSpace(n.Title)
 	n.Content = strings.TrimSpace(n.Content)
+	n.Code = strings.TrimSpace(n.Code)
 
 	n.Id = uuid.New()
+	if n.Code == "" {
+		n.Code = "NEWS-" + strings.ToUpper(uuid.NewString()[:8])
+	}
 	n.CreatedAt = time.Now()
 	n.UpdatedAt = time.Now()
 	n.Active = true
