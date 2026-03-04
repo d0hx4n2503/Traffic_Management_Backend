@@ -39,7 +39,7 @@ func (r *vehicleDocRepo) UpdateVehicleDoc(ctx context.Context, veDoc *models.Veh
 	if err := r.db.QueryRowxContext(ctx, updateLicenseQuery,
 		veDoc.OwnerID, veDoc.Brand, veDoc.TypeVehicle, veDoc.VehiclePlateNo, veDoc.ColorPlate, veDoc.ChassisNo, veDoc.EngineNo,
 		veDoc.ColorVehicle, veDoc.OwnerName, veDoc.Seats, veDoc.IssueDate, veDoc.Issuer, veDoc.RegistrationCode, veDoc.RegistrationDate, veDoc.ExpiryDate, veDoc.RegistrationPlace,
-		veDoc.Status, veDoc.ModifierId, veDoc.Active, veDoc.ID, veDoc.Version,
+		veDoc.Status, veDoc.ModifierId, veDoc.Active, veDoc.ID,
 	).StructScan(v); err != nil {
 		return nil, errors.Wrap(err, "vehicleDocRepo.UpdateVehicleDoc.StructScan")
 	}
