@@ -36,9 +36,8 @@ const (
         status = COALESCE(NULLIF($17, ''), status),
         modifier_id = COALESCE($18, modifier_id),
         version = version + 1,
-        updated_at = now(),
-        active = COALESCE($19, active)
-    WHERE id = $20
+        updated_at = now()
+    WHERE id = $19
     RETURNING *
 	`
 
@@ -122,7 +121,8 @@ const (
         vr.created_at,
         vr.on_blockchain,
         vr.blockchain_txhash,
-		COALESCE(u.user_address, dl.wallet_address) AS user_address
+		COALESCE(u.user_address, dl.wallet_address) AS user_address,
+        vr.registration_code
     FROM vehicle_registration vr
     LEFT JOIN driver_licenses dl ON vr.owner_id = dl.id AND dl.active = true
 	LEFT JOIN users u ON dl.identity_no = u.identity_no AND u.active = true
