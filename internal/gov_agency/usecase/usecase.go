@@ -73,6 +73,23 @@ func (u *GovAgencyUC) DeleteGovAgency(ctx context.Context, gov *models.GovAgency
 	return deleteGovAgency, nil
 }
 
+func (u *GovAgencyUC) RevokeGovAgency(ctx context.Context, gov *models.GovAgency) (*models.GovAgency, error) {
+	if err := gov.PrepareUpdate(); err != nil {
+		return nil, httpErrors.NewBadRequestError(errors.Wrap(err, "GovAgencyUC.RevokeGovAgency.PrepareUpdate"))
+	}
+
+	if err := utils.ValidateStruct(ctx, gov); err != nil {
+		return nil, httpErrors.NewBadRequestError(errors.WithMessage(err, "GovAgencyUC.RevokeGovAgency.ValidateStruct"))
+	}
+
+	revokedGovAgency, err := u.GovAgencyRepo.RevokeGovAgency(ctx, gov)
+	if err != nil {
+		return nil, err
+	}
+
+	return revokedGovAgency, nil
+}
+
 func (u *GovAgencyUC) GetGovAgency(ctx context.Context, pq *utils.PaginationQuery) (*models.GovAgencyList, error) {
 	return u.GovAgencyRepo.GetGovAgency(ctx, pq)
 }

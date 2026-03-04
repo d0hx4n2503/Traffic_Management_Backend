@@ -39,6 +39,17 @@ const (
 	RETURNING *
 	`
 
+	revokeGovAgencyQuery = `
+	UPDATE gov_agencies
+	SET
+		status = 'revoked',
+		active = false,
+		version = version + 1,
+		updated_at = $1
+	WHERE id = $2
+	RETURNING *
+	`
+
 	getGovAgencyQuery = `
 	SELECT *
 	FROM gov_agencies

@@ -50,6 +50,14 @@ func (r *GovAgencyRepo) DeleteGovAgency(ctx context.Context, gov *models.GovAgen
 	return g, nil
 }
 
+func (r *GovAgencyRepo) RevokeGovAgency(ctx context.Context, gov *models.GovAgency) (*models.GovAgency, error) {
+	g := &models.GovAgency{}
+	if err := r.db.QueryRowxContext(ctx, revokeGovAgencyQuery, gov.UpdatedAt, gov.Id).StructScan(g); err != nil {
+		return nil, errors.Wrap(err, "GovAgencyRepo.RevokeGovAgency.StructScan")
+	}
+	return g, nil
+}
+
 func (r *GovAgencyRepo) GetGovAgency(ctx context.Context, pq *utils.PaginationQuery) (*models.GovAgencyList, error) {
 	var totalCount int
 	if err := r.db.GetContext(ctx, &totalCount, getTotalGovAgencyCount); err != nil {

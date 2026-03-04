@@ -8,6 +8,7 @@ import (
 func MapGovAgencyRoutes(GovAgencyGroup *echo.Group, h govagency.Handlers) {
 	GovAgencyGroup.POST("/create", h.CreateGovAgency())
 	GovAgencyGroup.PUT("/:id", h.UpdateGovAgency())
+	GovAgencyGroup.PUT("/:id/revoke", h.RevokeGovAgency())
 	GovAgencyGroup.DELETE("/:id", h.DeleteGovAgency())
 	GovAgencyGroup.GET("/:id", h.GetByID())
 	GovAgencyGroup.GET("/getAll", h.GetAllGovAgency())

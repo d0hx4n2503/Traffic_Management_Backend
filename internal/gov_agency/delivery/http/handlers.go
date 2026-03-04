@@ -118,6 +118,35 @@ func (h GovAgencyHandlers) DeleteGovAgency() echo.HandlerFunc {
 	}
 }
 
+// Revoke godoc
+// @Summary Revoke Goverment Agency
+// @Description Revoke GovAgency by id
+// @Tags Goverment Agency
+// @Accept json
+// @Produce json
+// @Param id path int true "id"
+// @Success 200 {object} models.GovAgency
+// @Router /agency/{id}/revoke [put]
+func (h GovAgencyHandlers) RevokeGovAgency() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		GovAgencyUUID, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			utils.LogResponseError(c, h.logger, err)
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		n := &models.GovAgency{Id: GovAgencyUUID}
+		revokedGovAgency, err := h.GovAgencyUC.RevokeGovAgency(ctx, n)
+		if err != nil {
+			utils.LogResponseError(c, h.logger, err)
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		return c.JSON(http.StatusOK, revokedGovAgency)
+	}
+}
+
 // GetByID godoc
 // @Summary Get by Goverment Agency ID
 // @Description Get by Goverment Agency handler

@@ -6,6 +6,7 @@ type Handlers interface {
 	CreateGovAgency() echo.HandlerFunc
 	UpdateGovAgency() echo.HandlerFunc
 	DeleteGovAgency() echo.HandlerFunc
+	RevokeGovAgency() echo.HandlerFunc
 	GetByID() echo.HandlerFunc
 	GetAllGovAgency() echo.HandlerFunc
 	SearchByName() echo.HandlerFunc
