@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/adohong4/driving-license/config"
 	"github.com/adohong4/driving-license/internal/server"
@@ -23,8 +25,13 @@ import (
 // @description Type 'Bearer {your-jwt-token}' to authenticate. This is required for protected endpoints.
 func main() {
 	log.Println("Starting driving license API server")
+	loadDotEnvIfExists(".env")
 
-	configPath := utils.GetConfigPath(os.Getenv("config"))
+	configEnv := os.Getenv("config")
+	if configEnv == "" {
+		configEnv = os.Getenv("CONFIG")
+	}
+	configPath := utils.GetConfigPath(configEnv)
 
 	// Read & Analyst Config
 	cfgFile, err := config.LoadConfig(configPath)
@@ -35,6 +42,12 @@ func main() {
 	cfg, err := config.ParseConfig(cfgFile)
 	if err != nil {
 		log.Fatalf("ParseConfig: %v", err)
+	}
+	if renderPort := os.Getenv("PORT"); renderPort != "" {
+		if !strings.HasPrefix(renderPort, ":") {
+			renderPort = ":" + renderPort
+		}
+		cfg.Server.Port = renderPort
 	}
 
 	// Initialize Logger
@@ -54,5 +67,36 @@ func main() {
 	s := server.NewServer(cfg, psqlDB, appLogger)
 	if err := s.Run(); err != nil {
 		log.Fatalf("Server run: %v", err)
+	}
+}
+
+func loadDotEnvIfExists(path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.TrimSpace(parts[0])
+		val := strings.TrimSpace(parts[1])
+		if len(val) >= 2 {
+			if (strings.HasPrefix(val, "\"") && strings.HasSuffix(val, "\"")) || (strings.HasPrefix(val, "'") && strings.HasSuffix(val, "'")) {
+				val = val[1 : len(val)-1]
+			}
+		}
+		if key == "" {
+			continue
+		}
+		_ = os.Setenv(key, val)
 	}
 }

@@ -2,6 +2,8 @@ package server
 
 import (
 	"net/http"
+	"os"
+	"strings"
 
 	_ "github.com/adohong4/driving-license/docs"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -76,8 +78,20 @@ func (s *Server) MapHandlers(e *echo.Echo) error {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
+	allowOrigins := []string{"http://localhost:3000", "http://localhost:3001"}
+	if corsOrigins := os.Getenv("CORS_ALLOW_ORIGINS"); corsOrigins != "" {
+		parsedOrigins := strings.Split(corsOrigins, ",")
+		allowOrigins = make([]string, 0, len(parsedOrigins))
+		for _, origin := range parsedOrigins {
+			origin = strings.TrimSpace(origin)
+			if origin != "" {
+				allowOrigins = append(allowOrigins, origin)
+			}
+		}
+	}
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001"},
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodPatch, http.MethodHead},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, "X-CSRF-Token"}, // Add "X-CSRF-Token" so you have CSRF middleware
 		ExposeHeaders:    []string{"Content-Length", "X-CSRF-Token"},                                                                       // If need expose add header
