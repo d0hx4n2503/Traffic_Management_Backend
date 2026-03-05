@@ -111,6 +111,9 @@ func (u *GovAgencyUC) ConnectWallet(ctx context.Context, g *models.GovAgency) (*
 	if err != nil {
 		return nil, err
 	}
+	if foundAgency == nil {
+		return nil, httpErrors.NewUnauthorizedError("wallet address is not linked to any gov agency")
+	}
 	token, err := utils.GenerateJWTTokenFromAgencyAddress(foundAgency, u.cfg)
 	if err != nil {
 		return nil, httpErrors.NewInternalServerError(errors.Wrap(err, "authUC.ConnectWallet.GenerateJWTToken"))

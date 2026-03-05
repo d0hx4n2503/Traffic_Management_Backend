@@ -126,29 +126,41 @@ func (mw *MiddlewareManager) validateJWTToken(tokenString string, authUC auth.Us
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID, ok := claims["id"].(string)
-		if !ok {
-			return httpErrors.NewUnauthorizedError("invalid JWT claims")
+		if userID, ok := claims["id"].(string); ok && strings.TrimSpace(userID) != "" {
+			userUUID, err := uuid.Parse(userID)
+			if err != nil {
+				return err
+			}
+
+			user, err := authUC.GetByID(c.Request().Context(), userUUID)
+			if err != nil {
+				return err
+			}
+
+			if !user.Active {
+				return httpErrors.NewUnauthorizedError("user is inactive")
+			}
+
+			c.Set("user", user)
+			ctx := context.WithValue(c.Request().Context(), utils.UserCtxKey{}, user)
+			c.SetRequest(c.Request().WithContext(ctx))
+			return nil
 		}
 
-		userUUID, err := uuid.Parse(userID)
-		if err != nil {
-			return err
+		if userAddress, ok := claims["user_address"].(string); ok && strings.TrimSpace(userAddress) != "" {
+			// Support agency wallet tokens that only carry user_address claim.
+			user := &models.User{
+				Id:          uuid.Nil,
+				UserAddress: &userAddress,
+				Active:      true,
+			}
+			c.Set("user", user)
+			ctx := context.WithValue(c.Request().Context(), utils.UserCtxKey{}, user)
+			c.SetRequest(c.Request().WithContext(ctx))
+			return nil
 		}
 
-		user, err := authUC.GetByID(c.Request().Context(), userUUID)
-		if err != nil {
-			return err
-		}
-
-		if !user.Active {
-			return httpErrors.NewUnauthorizedError("user is inactive")
-		}
-
-		c.Set("user", user)
-		ctx := context.WithValue(c.Request().Context(), utils.UserCtxKey{}, user)
-		c.SetRequest(c.Request().WithContext(ctx))
-		return nil
+		return httpErrors.NewUnauthorizedError("invalid JWT claims")
 	}
 
 	return httpErrors.NewUnauthorizedError("invalid JWT token")
