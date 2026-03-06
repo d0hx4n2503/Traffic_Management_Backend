@@ -104,8 +104,24 @@ const (
         AND (user_address IS NULL OR TRIM(user_address) = '')
         RETURNING id`
 
+	syncDriverLicenseWalletByIdentityQuery = `
+        UPDATE driver_licenses
+        SET wallet_address = $1,
+            updated_at = now(),
+            version = version + 1
+        WHERE identity_no = $2
+          AND active = true`
+
 	unlinkWalletAddressQuery = `
         UPDATE users 
         SET user_address = NULL, updated_at = now(), version = version + 1
         WHERE identity_no = $1 AND active = true`
+
+	clearDriverLicenseWalletByIdentityQuery = `
+        UPDATE driver_licenses
+        SET wallet_address = NULL,
+            updated_at = now(),
+            version = version + 1
+        WHERE identity_no = $1
+          AND active = true`
 )

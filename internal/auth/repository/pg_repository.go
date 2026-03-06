@@ -181,25 +181,72 @@ func (r *authRepo) IsUserAddressLinked(ctx context.Context, identityNo string) (
 }
 
 func (r *authRepo) LinkWalletAddress(ctx context.Context, identityNo, walletAddress string) error {
-	result, err := r.db.ExecContext(ctx, linkWalletAddressQuery, walletAddress, identityNo)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return errors.Wrap(err, "authRepo.LinkWalletAddress")
+		return errors.Wrap(err, "authRepo.LinkWalletAddress.BeginTxx")
 	}
-	rows, _ := result.RowsAffected()
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	result, err := tx.ExecContext(ctx, linkWalletAddressQuery, walletAddress, identityNo)
+	if err != nil {
+		return errors.Wrap(err, "authRepo.LinkWalletAddress.updateUser")
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "authRepo.LinkWalletAddress.RowsAffected")
+	}
 	if rows == 0 {
 		return sql.ErrNoRows
 	}
+
+	if _, err := tx.ExecContext(ctx, syncDriverLicenseWalletByIdentityQuery, walletAddress, identityNo); err != nil {
+		return errors.Wrap(err, "authRepo.LinkWalletAddress.syncDriverLicenseWallet")
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.Wrap(err, "authRepo.LinkWalletAddress.Commit")
+	}
+	committed = true
 	return nil
 }
 
 func (r *authRepo) UnlinkWalletAddress(ctx context.Context, identityNo string) error {
-	result, err := r.db.ExecContext(ctx, unlinkWalletAddressQuery, identityNo)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return errors.Wrap(err, "authRepo.UnlinkWalletAddress")
+		return errors.Wrap(err, "authRepo.UnlinkWalletAddress.BeginTxx")
 	}
-	rows, _ := result.RowsAffected()
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	result, err := tx.ExecContext(ctx, unlinkWalletAddressQuery, identityNo)
+	if err != nil {
+		return errors.Wrap(err, "authRepo.UnlinkWalletAddress.clearUserWallet")
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "authRepo.UnlinkWalletAddress.RowsAffected")
+	}
 	if rows == 0 {
 		return sql.ErrNoRows
 	}
+
+	if _, err := tx.ExecContext(ctx, clearDriverLicenseWalletByIdentityQuery, identityNo); err != nil {
+		return errors.Wrap(err, "authRepo.UnlinkWalletAddress.clearDriverLicenseWallet")
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.Wrap(err, "authRepo.UnlinkWalletAddress.Commit")
+	}
+	committed = true
 	return nil
 }
